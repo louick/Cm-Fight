@@ -159,46 +159,51 @@ function Carteirinha({ student }: { student: Student }) {
 
   return (
     <div
-      className="cmfight-card bg-white text-gray-900 shadow-xl rounded-xl overflow-hidden border border-gray-200 print:shadow-none print:border-gray-400"
+      className="cmfight-card bg-white text-gray-900 shadow-xl rounded-xl overflow-hidden border border-gray-200 print:shadow-none print:border-gray-400 flex flex-col"
       style={{ width: '105mm', height: '74mm' }}
     >
       {/* Header */}
-      <div className="bg-cm-green-darkest text-white flex items-center gap-2 px-3 py-1.5">
-        <img src="/logo_cm_fight.png" alt="" className="h-7 w-auto" />
+      <div className="bg-cm-green-darkest text-white flex items-center gap-2 px-3 py-2 flex-shrink-0">
+        <img src="/logo_cm_fight.png" alt="" className="h-8 w-auto" />
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-black tracking-tight leading-none">
+          <p className="text-[11px] font-black tracking-tight leading-none">
             CM <span className="text-cm-yellow">FIGHT</span>
           </p>
           <p className="text-[7px] uppercase tracking-[0.18em] text-white/60 mt-0.5">Escola de Artes Marciais</p>
         </div>
         <div className="text-right">
           <p className="text-[6px] uppercase tracking-widest text-white/45 leading-none">Matrícula</p>
-          <p className="text-[8px] font-mono font-bold text-cm-yellow leading-tight">{student.id.slice(0, 8).toUpperCase()}</p>
+          <p className="text-[9px] font-mono font-bold text-cm-yellow leading-tight">{student.id.slice(0, 8).toUpperCase()}</p>
         </div>
       </div>
-      <div className="h-[2px] w-full bg-cm-yellow" />
+      <div className="h-[2px] w-full bg-cm-yellow flex-shrink-0" />
 
-      {/* Corpo */}
-      <div className="flex gap-2 p-2.5">
-        {/* Foto */}
-        <div className="flex-shrink-0 w-[22mm] h-[28mm] rounded overflow-hidden border border-gray-200 bg-gray-100 flex items-center justify-center">
+      {/* Corpo — preenche o resto da carteirinha */}
+      <div className="flex gap-2.5 p-3 flex-1 min-h-0">
+        {/* Foto — preenche a altura do corpo */}
+        <div className="flex-shrink-0 w-[28mm] h-full rounded overflow-hidden border border-gray-200 bg-gray-100 flex items-center justify-center">
           {student.photo ? (
             <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
           ) : (
-            <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           )}
         </div>
 
-        {/* Dados */}
-        <div className="flex-1 min-w-0 flex flex-col">
+        {/* Dados — flex-col com space-between distribui no eixo vertical */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between">
+          {/* Topo: nome + modalidade */}
           <div>
             <p className="text-[6px] font-bold text-gray-400 uppercase tracking-widest leading-none">Nome</p>
-            <p className="text-[11px] font-black text-gray-900 leading-tight line-clamp-2">{student.name}</p>
+            <p className="text-[12px] font-black text-gray-900 leading-tight line-clamp-2">{student.name}</p>
+            <span className="inline-block mt-1 text-[7px] font-bold px-1.5 py-[1px] rounded bg-cm-green-dark text-cm-yellow uppercase tracking-wider">
+              {MODALITY_LABEL[student.modality]}
+            </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-2 mt-1">
+          {/* Meio: CPF + Nascimento */}
+          <div className="grid grid-cols-2 gap-x-2">
             <div>
               <p className="text-[6px] font-bold text-gray-400 uppercase tracking-widest leading-none">CPF</p>
               <p className="text-[9px] font-semibold text-gray-700 leading-tight">{student.cpf}</p>
@@ -211,50 +216,46 @@ function Carteirinha({ student }: { student: Student }) {
             </div>
           </div>
 
-          <div className="mt-1">
-            <span className="inline-block text-[7px] font-bold px-1.5 py-[1px] rounded bg-cm-green-dark text-cm-yellow uppercase tracking-wider">
-              {MODALITY_LABEL[student.modality]}
-            </span>
-          </div>
-
-          {/* Graduação JJ */}
-          {showJJ && student.belt && (
-            <div className="mt-auto pt-1 flex items-end gap-1.5">
-              <div
-                className="h-3 w-[18mm] rounded-[2px] border border-black/15 flex items-center justify-end pr-0.5 gap-[2px] overflow-hidden"
-                style={
-                  student.belt === 'Coral'
-                    ? { background: 'linear-gradient(90deg, #dc2626 50%, #111 50%)' }
-                    : { backgroundColor: beltData?.hexColor }
-                }
-              >
-                {(student.beltDegree ?? 0) > 0 &&
-                  Array.from({ length: student.beltDegree ?? 0 }).map((_, i) => (
-                    <div key={i} className="w-[5px] h-[5px] rounded-full bg-cm-yellow border border-black/30 flex-shrink-0" />
-                  ))}
-              </div>
-              <div className="flex-1 min-w-0 leading-none">
-                <p className="text-[8px] font-bold text-gray-800 leading-none">{student.belt}{(student.beltDegree ?? 0) > 0 ? ` ${student.beltDegree}°` : ''}</p>
-                {t && (
-                  <p className="text-[7px] text-cm-green-dark font-semibold leading-none mt-0.5">
-                    {t.label} • desde {formatGradDate(effectiveBeltSince(student))}
+          {/* Base: graduação JJ e/ou MMA */}
+          <div className="space-y-1">
+            {showJJ && student.belt && (
+              <div className="flex items-center gap-1.5">
+                <div
+                  className="h-3.5 w-[20mm] rounded-[2px] border border-black/15 flex items-center justify-end pr-0.5 gap-[2px] overflow-hidden flex-shrink-0"
+                  style={
+                    student.belt === 'Coral'
+                      ? { background: 'linear-gradient(90deg, #dc2626 50%, #111 50%)' }
+                      : { backgroundColor: beltData?.hexColor }
+                  }
+                >
+                  {(student.beltDegree ?? 0) > 0 &&
+                    Array.from({ length: student.beltDegree ?? 0 }).map((_, i) => (
+                      <div key={i} className="w-[5px] h-[5px] rounded-full bg-cm-yellow border border-black/30 flex-shrink-0" />
+                    ))}
+                </div>
+                <div className="flex-1 min-w-0 leading-tight">
+                  <p className="text-[8px] font-bold text-gray-800 leading-none">
+                    {student.belt}{(student.beltDegree ?? 0) > 0 ? ` ${student.beltDegree}°` : ''}
                   </p>
-                )}
+                  {t && (
+                    <p className="text-[7px] text-cm-green-dark font-semibold leading-none mt-0.5">
+                      {t.label} • desde {formatGradDate(effectiveBeltSince(student))}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* MMA */}
-          {showMMA && (student.mmaLevel || student.mmaWeightClass) && (
-            <div className="mt-auto pt-1">
-              <p className="text-[6px] font-bold text-cm-orange uppercase tracking-widest leading-none">MMA</p>
-              <p className="text-[8px] font-semibold text-gray-700 leading-tight">
-                {student.mmaLevel}
-                {student.mmaLevel && student.mmaWeightClass ? ' • ' : ''}
-                {student.mmaWeightClass}
-              </p>
-            </div>
-          )}
+            )}
+            {showMMA && (student.mmaLevel || student.mmaWeightClass) && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[6px] font-bold text-cm-orange uppercase tracking-widest leading-none flex-shrink-0">MMA</span>
+                <p className="text-[8px] font-semibold text-gray-700 leading-tight truncate">
+                  {student.mmaLevel}
+                  {student.mmaLevel && student.mmaWeightClass ? ' • ' : ''}
+                  {student.mmaWeightClass}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
