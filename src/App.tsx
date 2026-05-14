@@ -35,6 +35,18 @@ export default function App() {
       .finally(() => setLoading(false))
   }, [])
 
+  // Se a aba foi morta enquanto a câmera estava aberta (memória),
+  // reabre o modal de cadastro com o rascunho salvo
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('cmfight:studentForm:draft')
+      if (raw) {
+        setEditing(undefined)
+        setModalOpen(true)
+      }
+    } catch { /* ignore */ }
+  }, [])
+
   const handleSave = async (data: StudentFormData) => {
     if (editing) {
       await updateStudent(editing.id, data)

@@ -37,6 +37,38 @@ function formatCEP(value: string): string {
   return digits.replace(/(\d{5})(\d)/, '$1-$2')
 }
 
+const DRAFT_KEY = 'cmfight:studentForm:draft'
+
+function compressImage(file: File, maxSize = 900, quality = 0.85): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(reader.error)
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onerror = () => reject(new Error('Falha ao carregar imagem'))
+      img.onload = () => {
+        let { width, height } = img
+        if (width > height && width > maxSize) {
+          height = Math.round((height * maxSize) / width)
+          width = maxSize
+        } else if (height > maxSize) {
+          width = Math.round((width * maxSize) / height)
+          height = maxSize
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return reject(new Error('Canvas sem suporte'))
+        ctx.drawImage(img, 0, 0, width, height)
+        resolve(canvas.toDataURL('image/jpeg', quality))
+      }
+      img.src = e.target?.result as string
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 function calculateAge(birthDate: string): number | null {
   if (!birthDate) return null
   const birth = new Date(birthDate)
@@ -48,11 +80,21 @@ function calculateAge(birthDate: string): number | null {
 }
 
 export default function StudentForm({ student, onSave, onCancel }: Props) {
+  // Restaura rascunho do sessionStorage se a aba foi morta enquanto a câmera estava aberta
+  const draft = (() => {
+    if (student) return null
+    try {
+      const raw = sessionStorage.getItem(DRAFT_KEY)
+      return raw ? JSON.parse(raw) : null
+    } catch { return null }
+  })()
+
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<StudentFormData>({
     defaultValues: student
@@ -68,18 +110,35 @@ export default function StudentForm({ student, onSave, onCancel }: Props) {
           address: student.address,
           photo: student.photo,
         }
-      : {
+      : draft?.form ?? {
           modality: 'jiu-jitsu',
           beltDegree: 0,
           address: { cep: '', street: '', number: '', complement: '', neighborhood: '', city: '', state: '' },
         },
   })
 
-  const [cpfDisplay, setCpfDisplay] = useState(student?.cpf ?? '')
-  const [cepDisplay, setCepDisplay] = useState(student?.address.cep ?? '')
-  const [photoPreview, setPhotoPreview] = useState<string | undefined>(student?.photo)
+  const [cpfDisplay, setCpfDisplay] = useState(student?.cpf ?? draft?.cpfDisplay ?? '')
+  const [cepDisplay, setCepDisplay] = useState(student?.address.cep ?? draft?.cepDisplay ?? '')
+  const [photoPreview, setPhotoPreview] = useState<string | undefined>(student?.photo ?? draft?.photoPreview)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const uploadInputRef = useRef<HTMLInputElement>(null)
+
+  // Persiste rascunho continuamente — sobrevive a aba morta pela câmera
+  const watchedValues = watch()
+  useEffect(() => {
+    if (student) return // edição não precisa de draft
+    try {
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
+        form: getValues(),
+        cpfDisplay,
+        cepDisplay,
+        photoPreview,
+      }))
+    } catch (err) {
+      // sessionStorage cheio ou indisponível — silencioso
+      console.warn('[draft]', err)
+    }
+  }, [watchedValues, cpfDisplay, cepDisplay, photoPreview, student, getValues])
 
   const birthDate = watch('birthDate')
   const modality = watch('modality') as Modality
@@ -97,18 +156,22 @@ export default function StudentForm({ student, onSave, onCancel }: Props) {
     }
   }, [selectedBelt, beltData, selectedDegree, setValue])
 
-  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation()
     const file = e.target.files?.[0]
+    e.target.value = '' // permite reescolher o mesmo arquivo
     if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => setPhotoPreview(reader.result as string)
-    reader.readAsDataURL(file)
-    // Permite escolher o mesmo arquivo de novo se quiser refazer
-    e.target.value = ''
+    try {
+      const dataUrl = await compressImage(file)
+      setPhotoPreview(dataUrl)
+    } catch (err) {
+      console.error('[photo]', err)
+      alert('Não consegui processar essa imagem. Tenta outra.')
+    }
   }
 
   const onSubmit = (data: StudentFormData) => {
+    try { sessionStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
     onSave({
       ...data,
       cpf: cpfDisplay,
@@ -119,6 +182,11 @@ export default function StudentForm({ student, onSave, onCancel }: Props) {
       mmaLevel: showMMA ? data.mmaLevel : undefined,
       mmaWeightClass: showMMA ? data.mmaWeightClass : undefined,
     })
+  }
+
+  const handleCancel = () => {
+    try { sessionStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
+    onCancel()
   }
 
   const inputClass =
@@ -433,7 +501,7 @@ export default function StudentForm({ student, onSave, onCancel }: Props) {
       <div className="flex gap-3 justify-end pt-2">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleCancel}
           className="px-6 py-2.5 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
         >
           Cancelar
