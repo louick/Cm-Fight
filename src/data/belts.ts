@@ -1,0 +1,88 @@
+import type { Belt } from '../types/student'
+
+export const BELTS: Belt[] = [
+  {
+    color: 'Branca',
+    label: 'Branca',
+    maxDegrees: 4,
+    note: 'Permanência mínima de 1 ano',
+    hexColor: '#FFFFFF',
+    textColor: '#1a1a1a',
+  },
+  {
+    color: 'Amarela',
+    label: 'Amarela',
+    maxDegrees: 4,
+    maxAge: 15,
+    note: 'Atletas até 15 anos',
+    hexColor: '#FFDF00',
+    textColor: '#1a1a1a',
+  },
+  {
+    color: 'Laranja',
+    label: 'Laranja',
+    maxDegrees: 4,
+    maxAge: 15,
+    note: 'Atletas até 15 anos',
+    hexColor: '#FF8C00',
+    textColor: '#FFFFFF',
+  },
+  {
+    color: 'Verde',
+    label: 'Verde',
+    maxDegrees: 4,
+    maxAge: 15,
+    note: 'Atletas até 15 anos',
+    hexColor: '#009c3b',
+    textColor: '#FFFFFF',
+  },
+  {
+    color: 'Azul',
+    label: 'Azul',
+    maxDegrees: 4,
+    note: 'Permanência média de 1,5 a 2 anos',
+    hexColor: '#003da6',
+    textColor: '#FFFFFF',
+  },
+  {
+    color: 'Roxa',
+    label: 'Roxa',
+    maxDegrees: 4,
+    note: 'Permanência média de 2 anos',
+    hexColor: '#6B21A8',
+    textColor: '#FFFFFF',
+  },
+  {
+    color: 'Marrom',
+    label: 'Marrom',
+    maxDegrees: 4,
+    note: 'Permanência média de 1,5 anos',
+    hexColor: '#92400e',
+    textColor: '#FFFFFF',
+  },
+  {
+    color: 'Preta',
+    label: 'Preta',
+    maxDegrees: 4,
+    hexColor: '#111111',
+    textColor: '#FFFFFF',
+  },
+  {
+    color: 'Coral',
+    label: 'Coral (Vermelho e Preto)',
+    maxDegrees: 0,
+    note: 'Mestre',
+    hexColor: 'linear-gradient(90deg, #dc2626 50%, #111111 50%)',
+    textColor: '#FFFFFF',
+  },
+  {
+    color: 'Vermelha',
+    label: 'Vermelha',
+    maxDegrees: 0,
+    note: 'Grande Mestre',
+    hexColor: '#dc2626',
+    textColor: '#FFFFFF',
+  },
+]
+
+export const getBelt = (color: string) => BELTS.find((b) => b.color === color)
