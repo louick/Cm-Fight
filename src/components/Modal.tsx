@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 
 interface Props {
   title: string
@@ -7,30 +7,17 @@ interface Props {
 }
 
 export default function Modal({ title, onClose, children }: Props) {
-  const downOnBackdrop = useRef(false)
-
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [onClose])
 
-  const handleBackdropDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    downOnBackdrop.current = e.target === e.currentTarget
-  }
-  const handleBackdropUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (downOnBackdrop.current && e.target === e.currentTarget) onClose()
-    downOnBackdrop.current = false
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
-        onPointerDown={handleBackdropDown}
-        onPointerUp={handleBackdropUp}
-      />
+      {/* Backdrop — intencionalmente SEM onClick. Fechar só pelo X ou ESC,
+          pra evitar clique-fantasma que dispara ao retornar da câmera no mobile. */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in pointer-events-none" />
 
       {/* Dialog */}
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl animate-slide-up">
@@ -41,7 +28,9 @@ export default function Modal({ title, onClose, children }: Props) {
             <h2 className="text-base font-bold text-gray-900">{title}</h2>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Fechar"
             className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors text-lg leading-none"
           >
             ×
