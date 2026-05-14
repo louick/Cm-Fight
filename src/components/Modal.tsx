@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface Props {
   title: string
@@ -7,18 +7,29 @@ interface Props {
 }
 
 export default function Modal({ title, onClose, children }: Props) {
+  const downOnBackdrop = useRef(false)
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [onClose])
 
+  const handleBackdropDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    downOnBackdrop.current = e.target === e.currentTarget
+  }
+  const handleBackdropUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (downOnBackdrop.current && e.target === e.currentTarget) onClose()
+    downOnBackdrop.current = false
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
-        onClick={onClose}
+        onPointerDown={handleBackdropDown}
+        onPointerUp={handleBackdropUp}
       />
 
       {/* Dialog */}
