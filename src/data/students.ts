@@ -7,6 +7,14 @@ export async function getStudents(): Promise<Student[]> {
   return res.json()
 }
 
+export async function getStudentByCpf(cpf: string): Promise<Student> {
+  const digits = cpf.replace(/\D/g, '')
+  const res = await fetch(`/api/students/by-cpf/${digits}`)
+  if (res.status === 404) throw new Error('Nenhum aluno cadastrado com esse CPF')
+  if (!res.ok) throw new Error('Falha ao buscar carteirinha')
+  return res.json()
+}
+
 export async function createStudent(data: StudentFormData): Promise<Student> {
   const student: Student = {
     ...data,

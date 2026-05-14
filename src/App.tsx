@@ -7,12 +7,18 @@ import StudentForm from './components/StudentForm'
 import Modal from './components/Modal'
 import ConfirmDialog from './components/ConfirmDialog'
 import Carteirinha from './components/Carteirinha'
+import CarteirinhaPublica from './components/CarteirinhaPublica'
 
 type SortKey = 'name' | 'belt' | 'createdAt'
 
 const BELT_ORDER: BeltColor[] = ['Branca','Amarela','Laranja','Verde','Azul','Roxa','Marrom','Preta','Coral','Vermelha']
 
 export default function App() {
+  // Página pública /carteirinha — não renderiza o admin
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/carteirinha')) {
+    return <CarteirinhaPublica />
+  }
+
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)

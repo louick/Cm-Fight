@@ -30,6 +30,16 @@ app.get('/api/students', (_req, res) => {
   res.json(rows.map(r => JSON.parse(r.data)))
 })
 
+// Lookup público por CPF — usado pela página /carteirinha (aluno imprime a própria)
+app.get('/api/students/by-cpf/:cpf', (req, res) => {
+  const digits = String(req.params.cpf).replace(/\D/g, '')
+  if (digits.length !== 11) return res.status(400).json({ error: 'CPF inválido' })
+  const rows = db.prepare('SELECT data FROM students').all()
+  const match = rows.map(r => JSON.parse(r.data)).find(s => String(s.cpf || '').replace(/\D/g, '') === digits)
+  if (!match) return res.status(404).json({ error: 'Aluno não encontrado' })
+  res.json(match)
+})
+
 app.post('/api/students', (req, res) => {
   const student = req.body
   db.prepare('INSERT INTO students (id, data, createdAt, updatedAt) VALUES (?, ?, ?, ?)').run(
