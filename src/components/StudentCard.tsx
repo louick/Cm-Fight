@@ -1,5 +1,6 @@
 import type { Student } from '../types/student'
 import BeltBadge from './BeltBadge'
+import { timeInBelt } from '../data/timeInBelt'
 
 export type ViewMode = 'grid' | 'list' | 'icons'
 
@@ -97,7 +98,17 @@ export default function StudentCard({ student, view, onClick }: Props) {
             {MODALITY_LABEL[student.modality]}
           </span>
           {showJJ && student.belt && (
-            <BeltBadge belt={student.belt} degree={student.beltDegree ?? 0} size="sm" />
+            <>
+              <BeltBadge belt={student.belt} degree={student.beltDegree ?? 0} size="sm" />
+              {(() => {
+                const t = timeInBelt(student)
+                return t ? (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-cm-green/10 text-cm-green-dark font-semibold whitespace-nowrap">
+                    {t.label}
+                  </span>
+                ) : null
+              })()}
+            </>
           )}
           {showMMA && student.mmaLevel && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-cm-orange/10 text-cm-orange font-medium border border-cm-orange/20">
@@ -134,8 +145,16 @@ export default function StudentCard({ student, view, onClick }: Props) {
         </div>
 
         {showJJ && student.belt && (
-          <div className="mt-3 pt-3 border-t border-gray-50">
+          <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between gap-2">
             <BeltBadge belt={student.belt} degree={student.beltDegree ?? 0} size="sm" />
+            {(() => {
+              const t = timeInBelt(student)
+              return t ? (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-cm-green/10 text-cm-green-dark font-semibold whitespace-nowrap">
+                  {t.label}
+                </span>
+              ) : null
+            })()}
           </div>
         )}
 

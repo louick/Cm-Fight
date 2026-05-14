@@ -1,5 +1,6 @@
 import type { Student } from '../types/student'
 import { getBelt } from '../data/belts'
+import { timeInBelt, effectiveBeltSince, formatGradDate } from '../data/timeInBelt'
 
 interface Props {
   student: Student
@@ -126,28 +127,63 @@ export default function Carteirinha({ student, onEdit, onDelete, onClose }: Prop
                 🥋 Jiu-Jitsu — Graduação
               </p>
               {student.belt ? (
-                <div className="flex items-center gap-4">
-                  {/* Faixa visual */}
-                  <div
-                    className="h-6 w-36 rounded border border-black/10 shadow-sm flex items-center justify-end pr-1.5 gap-1 overflow-hidden relative"
-                    style={
-                      student.belt === 'Coral'
-                        ? { background: 'linear-gradient(90deg, #dc2626 50%, #111 50%)' }
-                        : { backgroundColor: beltData?.hexColor }
-                    }
-                  >
-                    {(student.beltDegree ?? 0) > 0 &&
-                      Array.from({ length: student.beltDegree ?? 0 }).map((_, i) => (
-                        <div key={i} className="w-3 h-3 rounded-full bg-cm-yellow border border-black/20 flex-shrink-0" />
-                      ))}
+                <>
+                  <div className="flex items-center gap-4">
+                    {/* Faixa visual */}
+                    <div
+                      className="h-6 w-36 rounded border border-black/10 shadow-sm flex items-center justify-end pr-1.5 gap-1 overflow-hidden relative"
+                      style={
+                        student.belt === 'Coral'
+                          ? { background: 'linear-gradient(90deg, #dc2626 50%, #111 50%)' }
+                          : { backgroundColor: beltData?.hexColor }
+                      }
+                    >
+                      {(student.beltDegree ?? 0) > 0 &&
+                        Array.from({ length: student.beltDegree ?? 0 }).map((_, i) => (
+                          <div key={i} className="w-3 h-3 rounded-full bg-cm-yellow border border-black/20 flex-shrink-0" />
+                        ))}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-gray-800">{student.belt}</p>
+                      {(student.beltDegree ?? 0) > 0 && (
+                        <p className="text-xs text-gray-500">{student.beltDegree}° grau</p>
+                      )}
+                    </div>
+                    {(() => {
+                      const t = timeInBelt(student)
+                      return t ? (
+                        <div className="text-right">
+                          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Tempo</p>
+                          <p className="text-sm font-bold text-cm-green-dark">{t.label}</p>
+                        </div>
+                      ) : null
+                    })()}
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-800">{student.belt}</p>
-                    {(student.beltDegree ?? 0) > 0 && (
-                      <p className="text-xs text-gray-500">{student.beltDegree}° grau</p>
-                    )}
-                  </div>
-                </div>
+                  <p className="text-[10px] text-gray-400 mt-2">
+                    Graduado em <span className="font-semibold text-gray-600">{formatGradDate(effectiveBeltSince(student))}</span>
+                    {!student.beltSince && ' (estimado pela data de cadastro)'}
+                  </p>
+
+                  {(student.beltHistory?.length ?? 0) > 0 && (
+                    <div className="mt-3 pt-3 border-t border-cm-green/15">
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
+                        Histórico de graduações
+                      </p>
+                      <ul className="space-y-1">
+                        {[...(student.beltHistory ?? [])]
+                          .sort((a, b) => a.date.localeCompare(b.date))
+                          .map((h, i) => (
+                            <li key={i} className="flex items-center justify-between text-[11px] text-gray-600">
+                              <span className="font-medium">
+                                {h.belt}{h.degree > 0 ? ` — ${h.degree}° grau` : ''}
+                              </span>
+                              <span className="text-gray-400">{formatGradDate(h.date)}</span>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
               ) : (
                 <p className="text-xs text-gray-400">Sem graduação registrada</p>
               )}

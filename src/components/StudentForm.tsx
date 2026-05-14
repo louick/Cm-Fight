@@ -105,6 +105,8 @@ export default function StudentForm({ student, onSave, onCancel }: Props) {
           modality: student.modality,
           belt: student.belt,
           beltDegree: student.beltDegree ?? 0,
+          beltSince: student.beltSince ?? '',
+          beltHistory: student.beltHistory ?? [],
           mmaLevel: student.mmaLevel,
           mmaWeightClass: student.mmaWeightClass,
           address: student.address,
@@ -113,6 +115,8 @@ export default function StudentForm({ student, onSave, onCancel }: Props) {
       : draft?.form ?? {
           modality: 'jiu-jitsu',
           beltDegree: 0,
+          beltSince: new Date().toISOString().slice(0, 10),
+          beltHistory: [],
           address: { cep: '', street: '', number: '', complement: '', neighborhood: '', city: '', state: '' },
         },
   })
@@ -172,6 +176,26 @@ export default function StudentForm({ student, onSave, onCancel }: Props) {
 
   const onSubmit = (data: StudentFormData) => {
     try { sessionStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
+
+    // Histórico de graduações: se editando JJ e a faixa OU grau mudaram,
+    // arquiva a graduação anterior no histórico
+    let beltHistory = data.beltHistory ?? []
+    if (
+      showJJ &&
+      student &&
+      student.belt &&
+      (student.belt !== data.belt || (student.beltDegree ?? 0) !== (data.beltDegree ?? 0))
+    ) {
+      beltHistory = [
+        ...beltHistory,
+        {
+          belt: student.belt,
+          degree: student.beltDegree ?? 0,
+          date: student.beltSince || student.createdAt.slice(0, 10),
+        },
+      ]
+    }
+
     onSave({
       ...data,
       cpf: cpfDisplay,
@@ -179,6 +203,8 @@ export default function StudentForm({ student, onSave, onCancel }: Props) {
       photo: photoPreview,
       belt: showJJ ? data.belt : undefined,
       beltDegree: showJJ ? data.beltDegree : undefined,
+      beltSince: showJJ && data.belt ? data.beltSince : undefined,
+      beltHistory: showJJ ? beltHistory : undefined,
       mmaLevel: showMMA ? data.mmaLevel : undefined,
       mmaWeightClass: showMMA ? data.mmaWeightClass : undefined,
     })
@@ -376,8 +402,54 @@ export default function StudentForm({ student, onSave, onCancel }: Props) {
             </div>
           </div>
           {selectedBelt && (
-            <div className="pt-1">
-              <BeltBadge belt={selectedBelt} degree={selectedDegree ?? 0} size="lg" />
+            <>
+              <div>
+                <label className={labelClass}>
+                  Data desta graduação
+                  <span className="ml-2 text-[10px] font-normal text-gray-400 normal-case tracking-normal">
+                    (quando recebeu esta faixa e grau)
+                  </span>
+                </label>
+                <input
+                  type="date"
+                  max={new Date().toISOString().slice(0, 10)}
+                  {...register('beltSince', {
+                    required: showJJ && selectedBelt ? 'Informe quando o aluno recebeu esta faixa' : false,
+                  })}
+                  className={inputClass}
+                />
+                {errors.beltSince && <p className={errorClass}>{errors.beltSince.message}</p>}
+                <p className="text-[11px] text-gray-400 mt-1.5">
+                  Ao mudar a faixa ou o grau em uma edição futura, a graduação atual será arquivada no histórico do aluno automaticamente.
+                </p>
+              </div>
+              <div className="pt-1">
+                <BeltBadge belt={selectedBelt} degree={selectedDegree ?? 0} size="lg" />
+              </div>
+            </>
+          )}
+
+          {/* Histórico de graduações (apenas em edição, somente leitura) */}
+          {student && (student.beltHistory?.length ?? 0) > 0 && (
+            <div className="mt-2 pt-4 border-t border-gray-200">
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">
+                Histórico de graduações
+              </p>
+              <ul className="space-y-1.5">
+                {[...(student.beltHistory ?? [])]
+                  .sort((a, b) => a.date.localeCompare(b.date))
+                  .map((h, i) => (
+                    <li key={i} className="flex items-center justify-between text-xs text-gray-600">
+                      <span className="font-medium">
+                        {h.belt}
+                        {h.degree > 0 ? ` — ${h.degree}° grau` : ''}
+                      </span>
+                      <span className="text-gray-400">
+                        {new Date(h.date + 'T00:00:00').toLocaleDateString('pt-BR')}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
             </div>
           )}
         </div>

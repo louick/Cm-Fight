@@ -47,6 +47,12 @@ export interface Address {
   state: string
 }
 
+export interface BeltGraduation {
+  belt: BeltColor
+  degree: number
+  date: string // ISO yyyy-mm-dd — quando recebeu essa faixa+grau
+}
+
 export interface Student {
   id: string
   name: string
@@ -56,6 +62,8 @@ export interface Student {
   // Jiu-Jitsu
   belt?: BeltColor
   beltDegree?: number
+  beltSince?: string // data desta graduação (yyyy-mm-dd)
+  beltHistory?: BeltGraduation[] // graduações anteriores, em ordem cronológica
   // MMA
   mmaLevel?: MmaLevel
   mmaWeightClass?: MmaWeightClass
